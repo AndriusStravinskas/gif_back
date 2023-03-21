@@ -1,52 +1,54 @@
-const gifPostSchema = require('../mongoDb-schema/create-gif-schema')
+const fs = require('fs')
+const uid = require("uid")
+const RegisterValidationSchema = require('../validation/register-validate-Schema')
+const bcrypt = require("bcrypt")
+const userSchema = require('../mongoDb-schema/user-schema')
+
 
 module.exports = {
-  createRecord: async (req, res) => {
-    const data = req.body
+  register: async (req, res) => {
+    const {email, password} = await req.body;
 
-    try {
-      const createdGif = new gifPostSchema(data)
+    const checkUser = await userSchema.findOne({email: email})
+    if (checkUser) return res.send({error: true, message: `User with email ${email} exist`});
 
-      res.send({error: false, message: 'Gif postas sukurtas', createdGif })
-      console.log(`Sukurtas gif'as su id: ${createdGif.id}`)
-      await createdGif.save()
-    } catch (error) {
-      res.send({error: true, message: error.message })
-    }
+    const validateUser = RegisterValidationSchema.validateSync({email, password})
+    const hashedPassword = await bcrypt.hash(validateUser.password, 10);
 
+    const newUser = new userSchema({
+      email: validateUser.email,
+      password: hashedPassword,
+      secret: uid.uid()
+    })
+
+    console.log(`Vartotojas su email: ${newUser.email} sėkmingai sukurtas`)
+    await newUser.save()
+   
+    res.send(newUser)
+   },
+
+   login: async (req, res) => {
+    const { email, password } = await req.body;
+
+    const findUserByemail = await userSchema.findOne({email: email})
+
+    if(!findUserByemail) return res.send({error: true, message: "User does not exist"})
+    const PasswordMatch = await bcrypt.compare(password, findUserByemail.password)
+    if(!PasswordMatch) return res.send({error: true, message: "User does not exist"})
+    
+    return res.send({
+      error: false, 
+      message: `user with id: ${findUserByemail.secret} Login successfully`, 
+      secret: findUserByemail.secret, 
+      loginUserEmail: findUserByemail.email
+    })
+  
   },
 
-  getAllRecord: async (req, res) => {
-    const getAll = await gifPostSchema.find()
+  getAll: async (req, res) => {
+    const getAllPosts = await userPostsSchema.find();
 
-    res.send({error: false, message: '', getAll})
-  },
-
-  getSingleRecord: async (req, res) => {
-    const {id} = req.params
-    console.log(`Gautas vienas gifas su id: ${id}`)
-    const getSingle = await gifPostSchema.findOne({id})
-    console.log(getSingle)
-    res.send({getSingle})
-  },
-
-  deleteRecord: async (req, res) => {
-    const {id} = req.params
-    console.log(`Įvykdytas gif'o ištrynimas su id: ${id}`)
-    const deleteGif = await gifPostSchema.findOneAndDelete({id})
-    res.send({deleteGif})
-  },
-
-  updateRecord: async (req, res) => {
-    try {
-      const id = req.params
-      const newUrl =  await req.body
-      const updatedGif = await gifPostSchema.findOneAndUpdate(id, {$set: newUrl}, {new: true})
-      console.log(`Atnaujintas gif'o url: ${updatedGif.url} kurio id: ${updatedGif.id}`)
-      res.send({error: false, message: 'Gif updated', gif: updatedGif})
-    } catch (error) {
-      res.send({error: true, message: error.message})
-    }
-
+    res.send({error: false, message: '', getAllPosts})
   }
 }
+
