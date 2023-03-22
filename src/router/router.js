@@ -1,10 +1,11 @@
 const express = require('express')
 const { createRecord, getAllRecord, getSingleRecord, deleteRecord, updateRecord } = require('../controller/gifs')
-const { register } = require('../controller/auth')
+const { register, login } = require('../controller/auth')
 
 const router = express.Router()
 
 router.post('/register', register)
+router.post('/login', login)
 
 router.get('/getAll', getAllRecord)
 router.get('/gif/:id', getSingleRecord)

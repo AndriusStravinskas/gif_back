@@ -28,9 +28,9 @@ module.exports = {
    },
 
    login: async (req, res) => {
-    const { email, password } = await req.body;
+    const {email, password} = await req.body
 
-    const findUserByemail = await userSchema.findOne({email: email})
+    const findUserByemail = await userSchema.findOne({email})
 
     if(!findUserByemail) return res.send({error: true, message: "User does not exist"})
     const PasswordMatch = await bcrypt.compare(password, findUserByemail.password)
@@ -42,13 +42,7 @@ module.exports = {
       secret: findUserByemail.secret, 
       loginUserEmail: findUserByemail.email
     })
-  
+
   },
-
-  getAll: async (req, res) => {
-    const getAllPosts = await userPostsSchema.find();
-
-    res.send({error: false, message: '', getAllPosts})
-  }
 }
 

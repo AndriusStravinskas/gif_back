@@ -1,4 +1,5 @@
 const gifPostSchema = require('../mongoDb-schema/create-gif-schema')
+const userSchema = require('../mongoDb-schema/user-schema')
 
 module.exports = {
   createRecord: async (req, res) => {
@@ -10,6 +11,8 @@ module.exports = {
       res.send({error: false, message: 'Gif postas sukurtas', createdGif })
       console.log(`Sukurtas gif'as su id: ${createdGif.id}`)
       await createdGif.save()
+
+
     } catch (error) {
       res.send({error: true, message: error.message })
     }
@@ -26,8 +29,11 @@ module.exports = {
     const {id} = req.params
     console.log(`Gautas vienas gifas su id: ${id}`)
     const getSingle = await gifPostSchema.findOne({id})
+    const findUserByid = await userSchema.findOne({secret: getSingle.userSecret})
+
+    console.log(findUserByid)
     console.log(getSingle)
-    res.send({getSingle})
+    res.send({getSingle, userEmail: findUserByid.email})
   },
 
   deleteRecord: async (req, res) => {

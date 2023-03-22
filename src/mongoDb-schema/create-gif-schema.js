@@ -9,6 +9,10 @@ const gifPostSchema = new schema({
   url: {
     type: String,
     require: true
+  },
+  userSecret: {
+    type: String,
+    require: true
   }
 })
 
