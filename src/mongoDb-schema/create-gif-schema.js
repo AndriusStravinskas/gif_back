@@ -13,7 +13,11 @@ const gifPostSchema = new schema({
   userSecret: {
     type: String,
     require: true
-  }
+  },
+  email: {
+    type: String,
+    require: true
+  },
 })
 
 module.exports = mongoose.model('createdGifPost', gifPostSchema)
